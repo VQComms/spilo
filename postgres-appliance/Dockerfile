@@ -1,11 +1,11 @@
-ARG BASE_IMAGE=ubuntu:22.04
+ARG BASE_IMAGE=ubuntu:24.04
 ARG PGVERSION=16
 ARG DEMO=false
 ARG COMPRESS=false
 ARG ADDITIONAL_LOCALES=
 
 
-FROM --platform=linux/amd64 ubuntu:18.04 as ubuntu-18
+FROM --platform=linux/amd64 ubuntu:22.04 as ubuntu-22
 
 ARG ADDITIONAL_LOCALES
 
@@ -36,7 +36,7 @@ COPY build_scripts/prepare.sh build_scripts/locales.sh /builddeps/
 
 RUN bash /builddeps/prepare.sh
 
-COPY --from=ubuntu-18 /usr/lib/locale/locale-archive /usr/lib/locale/locale-archive.18
+COPY --from=ubuntu-22 /usr/lib/locale/locale-archive /usr/lib/locale/locale-archive.22
 
 COPY cron_unprivileged.c /builddeps/
 COPY build_scripts/base.sh /builddeps/
@@ -72,6 +72,9 @@ COPY build_scripts/patroni.sh build_scripts/compress_build.sh /builddeps/
 ENV PATRONIVERSION=4.1.5
 
 WORKDIR /
+
+ENV VIRTUAL_ENV=/usr/local/share/patroni
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN bash /builddeps/patroni.sh
 

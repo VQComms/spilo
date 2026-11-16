@@ -18,7 +18,10 @@ apt-cache depends patroni \
         | grep -Ev '^python3-(sphinx|etcd|consul|kazoo|kubernetes)' \
         | xargs apt-get install -y "${BUILD_PACKAGES[@]}" python3-pystache python3-requests
 
-pip3 install setuptools
+apt-get install -y python3-venv
+python3 -m venv --system-site-packages "$VIRTUAL_ENV"
+
+python -m pip install setuptools
 
 if [ "$DEMO" != "true" ]; then
     EXTRAS=",etcd,consul,zookeeper,aws"
@@ -33,24 +36,26 @@ if [ "$DEMO" != "true" ]; then
         python3-rsa \
         python3-s3transfer
 
-    find /usr/share/python-babel-localedata/locale-data -type f ! -name 'en_US*.dat' -delete
+    #find /usr/share/python-babel-localedata/locale-data -type f ! -name 'en_US*.dat' -delete
 
-    pip3 install protobuf \
+    python -m pip install protobuf \
             'git+https://github.com/zalando/pg_view.git@master#egg=pg-view'
 else
     EXTRAS=""
 fi
 
-pip3 install "patroni[kubernetes$EXTRAS]==$PATRONIVERSION"
+python -m pip install "patroni[kubernetes$EXTRAS]==$PATRONIVERSION"
 
-for d in /usr/local/lib/python3.10 /usr/lib/python3; do
-    cd $d/dist-packages
+for d in "$(python -c 'import sysconfig; print(sysconfig.get_path("purelib"))')" \
+         /usr/lib/python3/dist-packages; do
+    cd "$d"
+
     find . -type d -name tests -print0 | xargs -0 rm -fr
     find . -type f -name 'test_*.py*' -delete
+    find . -type f -name 'unittest_*.py*' -delete
+    find . -type f -name '*_test.py' -delete
+    find . -type f -name '*_test.cpython*.pyc' -delete
 done
-find . -type f -name 'unittest_*.py*' -delete
-find . -type f -name '*_test.py' -delete
-find . -type f -name '*_test.cpython*.pyc' -delete
 
 # Clean up
 apt-get purge -y "${BUILD_PACKAGES[@]}"
