@@ -29,7 +29,7 @@ How to Build This Docker Image
 
     $ cd postgres-appliance
 
-    $ docker buildx build --platform linux/amd64 -t <IMAGE REGISTTRY>:<VERSION> .
+    $ docker buildx build --platform linux/amd64 --load -t <IMAGE_REGISTRY>/<IMAGE_NAME>:<VERSION> .
 
 
 There are a few build arguments defined in the Dockerfile and it is possible to change them by specifying ``--build-arg`` arguments:
