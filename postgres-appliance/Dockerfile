@@ -1,11 +1,11 @@
-ARG BASE_IMAGE=ubuntu:22.04
-ARG PGVERSION=18
+ARG BASE_IMAGE=ubuntu:24.04
+ARG PGVERSION=16
 ARG DEMO=false
 ARG COMPRESS=false
 ARG ADDITIONAL_LOCALES=
 
 
-FROM ubuntu:18.04 as ubuntu-18
+FROM --platform=linux/amd64 ubuntu:22.04 as ubuntu-22
 
 ARG ADDITIONAL_LOCALES
 
@@ -14,7 +14,7 @@ COPY build_scripts/locales.sh /builddeps/
 RUN bash /builddeps/locales.sh
 
 
-FROM $BASE_IMAGE as dependencies-builder
+FROM --platform=linux/amd64 $BASE_IMAGE as dependencies-builder
 
 ARG DEMO
 
@@ -27,7 +27,7 @@ COPY dependencies/debs /builddeps/
 RUN bash /builddeps/dependencies.sh
 
 
-FROM $BASE_IMAGE as builder-false
+FROM --platform=linux/amd64 $BASE_IMAGE as builder-false
 
 ARG DEMO
 ARG ADDITIONAL_LOCALES
@@ -36,7 +36,7 @@ COPY build_scripts/prepare.sh build_scripts/locales.sh /builddeps/
 
 RUN bash /builddeps/prepare.sh
 
-COPY --from=ubuntu-18 /usr/lib/locale/locale-archive /usr/lib/locale/locale-archive.18
+COPY --from=ubuntu-22 /usr/lib/locale/locale-archive /usr/lib/locale/locale-archive.22
 
 COPY cron_unprivileged.c /builddeps/
 COPY build_scripts/base.sh /builddeps/
@@ -46,10 +46,9 @@ ARG PGVERSION
 ARG TIMESCALEDB_APACHE_ONLY=true
 ARG TIMESCALEDB_TOOLKIT=true
 ARG COMPRESS
-ARG PGOLDVERSIONS="14 15 16 17"
 ARG WITH_PERL=false
 
-ARG DEB_PG_SUPPORTED_VERSIONS="$PGOLDVERSIONS $PGVERSION"
+ARG DEB_PG_SUPPORTED_VERSIONS="$PGVERSION"
 
 # Install PostgreSQL, extensions and contribs
 ENV POSTGIS_VERSION=3.7 \
@@ -75,16 +74,19 @@ ENV PATRONIVERSION=4.1.5
 
 WORKDIR /
 
+ENV VIRTUAL_ENV=/usr/local/share/patroni
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 RUN bash /builddeps/patroni.sh
 
 RUN if [ "$COMPRESS" = "true" ]; then bash /builddeps/compress_build.sh; fi
 
 
-FROM scratch as builder-true
+FROM --platform=linux/amd64 scratch as builder-true
 COPY --from=builder-false / /
 
 
-FROM builder-${COMPRESS}
+FROM --platform=linux/amd64 builder-${COMPRESS}
 
 LABEL maintainer="Team ACID @ Zalando <team-acid@zalando.de>"
 
