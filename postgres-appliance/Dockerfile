@@ -18,7 +18,7 @@ FROM $BASE_IMAGE as dependencies-builder
 
 ARG DEMO
 
-ENV WALG_VERSION=v3.0.8
+ENV WALG_VERSION=v3.0.9
 
 COPY build_scripts/dependencies.sh /builddeps/
 
@@ -52,14 +52,15 @@ ARG WITH_PERL=false
 ARG DEB_PG_SUPPORTED_VERSIONS="$PGOLDVERSIONS $PGVERSION"
 
 # Install PostgreSQL, extensions and contribs
-ENV POSTGIS_VERSION=3.6 \
-    BG_MON_COMMIT=a73c6bcd10dfdf9feaf5eabab7eb6b12d167680d \
+ENV POSTGIS_VERSION=3.7 \
+    BG_MON_COMMIT=c44fa1dd0cd5346e462c54dfd2f97d3f25c299d6 \
     PG_AUTH_MON_COMMIT=fe099eef7662cbc85b0b79191f47f52f1e96b779 \
     PG_MON_COMMIT=88ac7b58348aa061c814982defc170644f368f39 \
     PLPROFILER=REL4_2_5 \
-    PG_PROFILE=4.15 \
+    PG_PROFILE=4.16 \
     PAM_OAUTH2=v1.0.1 \
-    PG_TEXTSEARCH=v1.3.1
+    PG_TEXTSEARCH=v1.5.1 \
+    LOG_FDW_VERSION=v1.5
 
 WORKDIR /builddeps
 RUN bash base.sh
